@@ -5,7 +5,7 @@ const authenticateToken = require('../middleware/authenticateToken');
 const checkRole = require('../middleware/checkRole');
 
 
-router.get('/', authenticateToken, checkRole(['admin']), getAllUsers);
-router.patch('/:id/role', authenticateToken, checkRole(['admin']), updateUserRole);
+router.get('/', authenticateToken, getAllUsers);
+router.patch('/:id/role', authenticateToken, updateUserRole);
 
 module.exports = router;

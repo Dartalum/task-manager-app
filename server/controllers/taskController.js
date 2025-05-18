@@ -108,11 +108,6 @@ const updateTask = async (req, res) => {
 
         // Обновление статуса задачи — только для исполнителя или администратора
         if (statusId !== undefined && ['executor', 'admin'].includes(req.user.role)) {
-            const cancelStatus = await TaskStatus.findOne({ where: { name: 'cancelled' } });
-            if (!cancelStatus) {
-                return res.status(500).json({ message: 'Status "cancelled" not found' });
-            }
-
             const targetStatus = await TaskStatus.findByPk(statusId);
             if (!targetStatus) {
                 return res.status(400).json({ message: 'Invalid statusId' });
@@ -120,9 +115,14 @@ const updateTask = async (req, res) => {
 
             task.statusId = targetStatus.id;
 
-            // Если статус "cancelled", то отменить все незавершённые подзадачи
+            // Только если статус "cancelled" — загружаем статус "completed" и отменяем подзадачи
             if (targetStatus.name === 'cancelled') {
+                const cancelStatus = await TaskStatus.findOne({ where: { name: 'cancelled' } });
                 const completedStatus = await TaskStatus.findOne({ where: { name: 'completed' } });
+
+                if (!cancelStatus || !completedStatus) {
+                    return res.status(500).json({ message: 'Не найдены статусы "cancelled" или "completed"' });
+                }
 
                 await Task.update(
                     { statusId: cancelStatus.id },
@@ -149,6 +149,7 @@ const updateTask = async (req, res) => {
         res.status(500).json({ message: 'Error updating task', error: err.message });
     }
 };
+
 
 
 

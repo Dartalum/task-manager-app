@@ -1,4 +1,4 @@
-// Универсальная обёртка для безопасного JSON-парсинга
+
 async function safeJson(res: Response, label: string) {
     const text = await res.text();
     console.log(`[${label}] raw response:`, text);
@@ -11,11 +11,9 @@ async function safeJson(res: Response, label: string) {
     }
 }
 
-export async function fetchTasks(role: string) {
+export async function fetchTasks() {
     const token = localStorage.getItem('token');
-    const url = role === 'admin' || role === 'executor' ? '/api/tasks/all' : '/api/tasks/my';
-
-    const res = await fetch(url, {
+    const res = await fetch('/api/tasks/all', {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -53,28 +51,18 @@ export async function updateTask(taskId: number, updates: any) {
 
 export async function addComment(taskId: number, content: string) {
     const token = localStorage.getItem('token');
-    const res = await fetch(`/api/tasks/${taskId}/comments`, {
+    return fetch(`/api/comments/${taskId}`, {
         method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
-    });
-
-    return safeJson(res, 'addComment');
+    }).then(res => res.json());
 }
 
 export async function fetchComments(taskId: number) {
     const token = localStorage.getItem('token');
-    const res = await fetch(`/api/tasks/${taskId}/comments`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        }
-    });
-
-    return safeJson(res, 'fetchComments');
+    return fetch(`/api/comments?taskId=${taskId}`, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+    }).then(res => res.json());
 }
 
 export async function fetchSubtasks(taskId: number) {
@@ -111,4 +99,16 @@ export async function fetchTaskTypes() {
     });
 
     return safeJson(res, 'fetchTaskTypes');
+}
+
+export async function fetchAllUsers() {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/users', {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        }
+    });
+
+    return safeJson(res, 'fetchAllUsers');
 }

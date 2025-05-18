@@ -22,7 +22,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/comments', commentRoutes);
-app.use('/api/tasks/:id/comments', commentRoutes);
+//app.use('/api/tasks/:id/comments', commentRoutes);
+app.use('/api/comments', commentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 

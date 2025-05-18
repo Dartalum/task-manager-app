@@ -1,3 +1,4 @@
+
 const { Comment, Task, User } = require('../models');
 
 const createComment = async (req, res) => {
@@ -5,13 +6,21 @@ const createComment = async (req, res) => {
     const { content } = req.body;
 
     try {
-        const task = await Task.findByPk(taskId);
+        console.log('[createComment] taskId param =', taskId);
+        console.log('[createComment] type of taskId =', typeof taskId);
+
+        const tasks = await Task.findAll({ attributes: ['id', 'title'] });
+        console.log('[DEBUG] Все задачи:', tasks);
+
+
+        const task = await Task.findByPk(Number(taskId));
+        console.log('[createComment] task result =', task);
         if (!task) return res.status(404).json({ message: 'Task not found' });
 
         const comment = await Comment.create({
             content,
             userId: req.user.id,
-            taskId
+            taskId: Number(taskId)
         });
 
         res.status(201).json(comment);
@@ -21,14 +30,14 @@ const createComment = async (req, res) => {
 };
 
 const getComments = async (req, res) => {
-    const { id: taskId } = req.params;
+    const { taskId } = req.query;
 
     try {
         const comments = await Comment.findAll({
             where: { taskId },
             include: {
                 model: User,
-                attributes: ['id', 'username']
+                attributes: ['id', 'username', 'firstName', 'lastName', 'middleName']
             },
             order: [['createdAt', 'ASC']]
         });
