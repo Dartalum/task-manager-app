@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "types": ["node"],
+    "esModuleInterop": true,
+    "jsx": "react",
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
@@ -18,7 +21,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    /* Alias support */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src"]
 }

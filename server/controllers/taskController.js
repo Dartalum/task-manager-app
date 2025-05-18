@@ -47,7 +47,7 @@ const createTask = async (req, res) => {
                     title: subTaskNames[i],
                     description: `Подзадача: ${subTaskNames[i]}`,
                     typeId: subTypes[i].id,
-                    statusId: task.statusId,
+                    statusId: task.TaskStatus?.nameId,
                     dueDate: task.dueDate,
                     authorId: task.authorId,
                     executorId: null,
@@ -87,7 +87,7 @@ const getUserTasks = async (req, res) => {
 
 const updateTask = async (req, res) => {
     const { id } = req.params;
-    const { status, executorId, typeId, description } = req.body;
+    const { statusId, executorId, typeId, description } = req.body;
 
     try {
         const task = await Task.findByPk(id, {
@@ -96,23 +96,31 @@ const updateTask = async (req, res) => {
 
         if (!task) return res.status(404).json({ message: 'Task not found' });
 
+        // Обновить описание может любой
         if (description !== undefined) {
             task.description = description;
         }
 
+        // Обновление типа задачи — только для исполнителя или администратора
         if (typeId !== undefined && ['executor', 'admin'].includes(req.user.role)) {
             task.typeId = typeId;
         }
 
-        if (status && ['executor', 'admin'].includes(req.user.role)) {
+        // Обновление статуса задачи — только для исполнителя или администратора
+        if (statusId !== undefined && ['executor', 'admin'].includes(req.user.role)) {
             const cancelStatus = await TaskStatus.findOne({ where: { name: 'cancelled' } });
-            if (!cancelStatus) return res.status(500).json({ message: 'Status "cancelled" not found' });
+            if (!cancelStatus) {
+                return res.status(500).json({ message: 'Status "cancelled" not found' });
+            }
 
-            const targetStatus = await TaskStatus.findByPk(status);
-            if (!targetStatus) return res.status(400).json({ message: 'Invalid status' });
+            const targetStatus = await TaskStatus.findByPk(statusId);
+            if (!targetStatus) {
+                return res.status(400).json({ message: 'Invalid statusId' });
+            }
 
             task.statusId = targetStatus.id;
 
+            // Если статус "cancelled", то отменить все незавершённые подзадачи
             if (targetStatus.name === 'cancelled') {
                 const completedStatus = await TaskStatus.findOne({ where: { name: 'completed' } });
 
@@ -128,6 +136,7 @@ const updateTask = async (req, res) => {
             }
         }
 
+        // Обновление исполнителя — только для исполнителя или администратора
         if (executorId !== undefined && ['executor', 'admin'].includes(req.user.role)) {
             const executor = await User.findByPk(executorId);
             if (!executor) return res.status(400).json({ message: 'Executor not found' });
@@ -140,6 +149,9 @@ const updateTask = async (req, res) => {
         res.status(500).json({ message: 'Error updating task', error: err.message });
     }
 };
+
+
+
 
 const deleteTask = async (req, res) => {
     const { id } = req.params;
@@ -190,10 +202,108 @@ const getTaskById = async (req, res) => {
     }
 };
 
+const getAllTasks = async (req, res) => {
+    const {
+        author,
+        executor,
+        statusId,
+        typeId,
+        startDate,
+        endDate,
+        page = 1,
+        limit = 10,
+        sortBy = 'createdAt',
+        order = 'DESC'
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+
+    const where = {};
+
+    if (statusId) where.statusId = statusId;
+    if (typeId) where.typeId = typeId;
+    if (startDate && endDate) {
+        where.createdAt = {
+            [Op.between]: [new Date(startDate), new Date(endDate)]
+        };
+    }
+
+    const include = [
+        {
+            model: User,
+            as: 'author',
+            attributes: ['id', 'username', 'email'],
+            where: author ? {
+                [Op.or]: [
+                    { username: { [Op.iLike]: `%${author}%` } },
+                    { email: { [Op.iLike]: `%${author}%` } }
+                ]
+            } : undefined
+        },
+        {
+            model: User,
+            as: 'executor',
+            attributes: ['id', 'username', 'email'],
+            where: executor ? {
+                [Op.or]: [
+                    { username: { [Op.iLike]: `%${executor}%` } },
+                    { email: { [Op.iLike]: `%${executor}%` } }
+                ]
+            } : undefined
+        },
+        { model: TaskStatus },
+        { model: TaskType }
+    ];
+
+    try {
+        const { rows, count } = await Task.findAndCountAll({
+            where,
+            include,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            order: [[sortBy, order.toUpperCase()]]
+        });
+
+        res.json({
+            tasks: rows,
+            total: count,
+            page: parseInt(page),
+            totalPages: Math.ceil(count / limit)
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching tasks', error: err.message });
+    }
+};
+
+const assignExecutor = async (req, res) => {
+    const { id } = req.params;
+    const { executorId } = req.body;
+
+    try {
+        const task = await Task.findByPk(id);
+        if (!task) return res.status(404).json({ message: 'Task not found' });
+
+        const executor = await User.findByPk(executorId);
+        if (!executor) return res.status(400).json({ message: 'Executor not found' });
+
+        task.executorId = executorId;
+        await task.save();
+
+        res.json({ message: 'Executor assigned', task });
+    } catch (err) {
+        res.status(500).json({ message: 'Error assigning executor', error: err.message });
+    }
+};
+
+
+
+
 module.exports = {
     createTask,
     getUserTasks,
     updateTask,
     deleteTask,
-    getTaskById
+    getTaskById,
+    getAllTasks,
+    assignExecutor
 };

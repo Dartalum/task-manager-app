@@ -1,0 +1,51 @@
+body {
+    background-color: #f4f5f7; /* фон как в Jira */
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #172B4D; /* основной текст */
+}
+
+.card {
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    border: none; /* убираем дефолтную границу */
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #172B4D;
+}
+
+.card-text {
+    font-size: 0.875rem;
+    color: #5E6C84;
+}
+
+.badge-status {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.badge-status.новая {
+    background-color: #e3fcef;
+    color: #006644;
+}
+
+.badge-status.в-работе {
+    background-color: #deebff;
+    color: #0747a6;
+}
+
+
+.badge-status.завершена {
+    background-color: #eae6ff;
+    color: #403294;
+}
