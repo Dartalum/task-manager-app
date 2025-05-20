@@ -32,4 +32,15 @@ const updateUserRole = async (req, res) => {
     }
 };
 
-module.exports = { getAllUsers, updateUserRole };
+
+
+const getRoles = async (req, res) => {
+    try {
+        const roles = await UserRole.findAll();
+        res.json(roles);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch roles', error: err.message });
+    }
+};
+
+module.exports = { getAllUsers, updateUserRole, getRoles };

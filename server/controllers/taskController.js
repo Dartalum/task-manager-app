@@ -3,27 +3,28 @@ const { Op } = require('sequelize');
 
 const createTask = async (req, res) => {
     const { title, description, typeId, dueDate, executorId } = req.body;
-
     const transaction = await sequelize.transaction();
 
     try {
+        const finalExecutorId = executorId !== undefined && executorId !== null && executorId !== ''
+            ? Number(executorId)
+            : 1; // по умолчанию — админ
+
+        const executor = await User.findByPk(finalExecutorId, { transaction });
+        if (!executor) {
+            await transaction.rollback();
+            return res.status(400).json({ message: 'Executor not found' });
+        }
+
         const taskData = {
             title,
             description,
             typeId,
             dueDate,
             authorId: req.user.id,
-            statusId: 1 // "new"
+            statusId: 1, // статус "новая"
+            executorId: executor.id
         };
-
-        if (executorId !== undefined) {
-            const executor = await User.findByPk(executorId, { transaction });
-            if (!executor) {
-                await transaction.rollback();
-                return res.status(400).json({ message: 'Executor not found' });
-            }
-            taskData.executorId = executorId;
-        }
 
         const task = await Task.create(taskData, { transaction });
 
@@ -47,7 +48,7 @@ const createTask = async (req, res) => {
                     title: subTaskNames[i],
                     description: `Подзадача: ${subTaskNames[i]}`,
                     typeId: subTypes[i].id,
-                    statusId: task.TaskStatus?.nameId,
+                    statusId: 1,
                     dueDate: task.dueDate,
                     authorId: task.authorId,
                     executorId: null,
@@ -60,9 +61,11 @@ const createTask = async (req, res) => {
         res.status(201).json(task);
     } catch (err) {
         await transaction.rollback();
+        console.error('❌ Ошибка при создании задачи:', err);
         res.status(500).json({ message: 'Error creating task', error: err.message });
     }
 };
+
 
 
 const getUserTasks = async (req, res) => {
@@ -260,8 +263,10 @@ const getAllTasks = async (req, res) => {
         const { rows, count } = await Task.findAndCountAll({
             where,
             include,
-            limit: parseInt(limit),
-            offset: parseInt(offset),
+            limit: undefined,
+            offset: undefined,
+            /*limit: parseInt(limit),
+            offset: parseInt(offset),*/
             order: [[sortBy, order.toUpperCase()]]
         });
 

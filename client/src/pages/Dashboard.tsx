@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   fetchTasks,
   fetchTaskTypes,
@@ -12,6 +13,9 @@ import {
 const CLOSED_STATUS_ID = 3;
 
 export default function Dashboard() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const selectedIdFromUrl = params.get('id');
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [previousTask, setPreviousTask] = useState<any | null>(null);
@@ -24,13 +28,13 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
   const [onlyMyTasks, setOnlyMyTasks] = useState(false);
+  
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     const init = async () => {
-      const role = user.role;
-      const tasksData = await fetchTasks(role);
+      const tasksData = await fetchTasks();
       setTasks(tasksData.tasks || tasksData);
       setTypeOptions(await fetchTaskTypes());
       setStatusOptions(await fetchTaskStatuses());
@@ -38,6 +42,16 @@ export default function Dashboard() {
     };
     init();
   }, []);
+
+  useEffect(() => {
+    if (selectedIdFromUrl && tasks.length && !selectedTask) {
+      const task = tasks.find(t => t.id === Number(selectedIdFromUrl));
+      if (task) {
+        handleTaskClick(task).then(r => console.log(r));
+      }
+    }
+  }, [selectedIdFromUrl, tasks, selectedTask]);
+
 
   const handleTaskClick = async (task: any, fromSubtask = false) => {
     if (fromSubtask) {

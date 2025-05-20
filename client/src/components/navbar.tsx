@@ -3,13 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
     const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    console.log('[Navbar] user:', user);
+    console.log('[Navbar] typeof user:', typeof user);
+
+
+
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/');
     };
-
+    
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
             <div className="container-fluid">
@@ -26,7 +32,14 @@ export default function Navbar() {
                     </ul>
 
                     <div className="d-flex gap-2">
-                        <button className="btn btn-danger">Создать задачу</button>
+                        {user.role === 'admin' && (
+                            <button className="btn btn-danger" onClick={() => navigate('/admin-panel')}>
+                                Админ-панель
+                            </button>
+                        )}
+                        <button className="btn btn-danger" onClick={() => navigate('/create-task')}>
+                            Создать задачу
+                        </button>
                         <button className="btn btn-light text-danger" onClick={handleLogout}>
                             Выйти
                         </button>

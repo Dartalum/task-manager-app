@@ -16,10 +16,15 @@ module.exports = (sequelize, DataTypes) => {
     },
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
-    middleName: DataTypes.STRING
+    middleName: DataTypes.STRING,
+    roleId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    }
   }, {
     tableName: 'Users'
   });
+
 
   User.associate = (models) => {
     User.belongsTo(models.UserRole, { foreignKey: 'roleId' });

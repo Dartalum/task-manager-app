@@ -6,6 +6,10 @@ const taskRoutes = require('./routes/taskRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const authenticate = require('./middleware/authMiddleware');
+const checkRole = require('./middleware/checkRole');
+
+
 
 
 //.env
@@ -25,7 +29,7 @@ app.use('/api/comments', commentRoutes);
 //app.use('/api/tasks/:id/comments', commentRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', authenticate, checkRole(['admin']), adminRoutes);
 
 
 

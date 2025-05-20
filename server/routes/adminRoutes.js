@@ -5,7 +5,8 @@ const authenticate = require('../middleware/authMiddleware');
 const checkRole = require('../middleware/checkRole');
 
 
-
+router.get('/roles', authenticate, checkRole(['admin']), adminController.getRoles);
+router.post('/users', authenticate, checkRole(['admin']), adminController.addUser);
 
 
 

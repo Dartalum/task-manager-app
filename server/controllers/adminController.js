@@ -1,4 +1,6 @@
 const { TaskType, TaskStatus } = require('../models');
+const { UserRole, User } = require('../models');
+const bcrypt = require('bcrypt');
 
 const getTaskTypes = async (req, res) => {
     try {
@@ -66,11 +68,54 @@ const deleteTaskStatus = async (req, res) => {
     }
 };
 
+const getRoles = async (req, res) => {
+    try {
+        const roles = await UserRole.findAll();
+        res.json(roles);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch roles', error: err.message });
+    }
+};
+
+const addUser = async (req, res) => {
+    console.log('[addUser] req.body:', req.body);
+    const { email, password, username, firstName, lastName, middleName, roleId } = req.body;
+
+    if (!email || !password || !username || !firstName || !lastName || !roleId) {
+        return res.status(400).json({ message: 'Заполните все обязательные поля' });
+    }
+
+    try {
+        const existing = await User.findOne({ where: { email } });
+        if (existing) {
+            return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await User.create({
+            email,
+            password: hashedPassword,
+            firstName,
+            username,
+            lastName,
+            middleName,
+            roleId
+        });
+
+        res.status(201).json(newUser);
+    } catch (err) {
+        res.status(500).json({ message: 'Ошибка при создании пользователя', error: err.message });
+    }
+};
+
 module.exports = {
     getTaskTypes,
     addTaskType,
     deleteTaskType,
     getTaskStatuses,
     addTaskStatus,
-    deleteTaskStatus
+    deleteTaskStatus,
+    getRoles,
+    addUser
 };

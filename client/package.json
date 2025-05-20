@@ -20,6 +20,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@popperjs/core": "^2.11.8",
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
