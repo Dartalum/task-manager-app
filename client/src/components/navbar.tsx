@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
     const navigate = useNavigate();
@@ -19,15 +19,31 @@ export default function Navbar() {
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
             <div className="container-fluid">
-                <Link className="navbar-brand fw-bold" to="/dashboard">TaskManager</Link>
-
+                <NavLink className="navbar-brand fw-bold fs-4 text-dark" to="/dashboard">
+                    TaskManager
+                </NavLink>
                 <div className="collapse navbar-collapse show">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <Link className="nav-link" to="/dashboard">Задачи</Link>
+                            <NavLink
+                                to="/dashboard"
+                                className={({ isActive }) =>
+                                    'nav-link fw-semibold fs-5' + (isActive ? ' text-black border-bottom border-2 border-black' : ' text-light')
+                                }
+                            >
+                                Задачи
+                            </NavLink>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" to="/kanban">Канбан</Link>
+                            <NavLink
+                                to="/kanban"
+                                className={({ isActive }) =>
+                                    'nav-link fw-semibold fs-5' + (isActive ? ' text-black border-bottom border-2 border-black' : ' text-light')
+                                }
+                            >
+                                Канбан
+                            </NavLink>
+
                         </li>
                     </ul>
 

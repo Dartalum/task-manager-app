@@ -43,9 +43,13 @@ export default function KanbanBoard() {
     const [typeOptions, setTypeOptions] = useState<TaskType[]>([]);
     const navigate = useNavigate();
     const [filterExecutor, setFilterExecutor] = useState('');
-    const [filterStatus, setFilterStatus] = useState('');
+    //const [filterStatus, setFilterStatus] = useState('');
     const [filterType, setFilterType] = useState('');
     const [onlyMyTasks, setOnlyMyTasks] = useState(false);
+    const [filterAuthor, setFilterAuthor] = useState('');
+    const [executorSuggestions, setExecutorSuggestions] = useState<string[]>([]);
+    const [authorSuggestions, setAuthorSuggestions] = useState<string[]>([]);
+
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -61,6 +65,23 @@ export default function KanbanBoard() {
         load();
     }, []);
 
+    useEffect(() => {
+        const input = filterExecutor.toLowerCase();
+        const matches = users
+            .map(u => getUserName(u.id))
+            .filter(name => name.toLowerCase().includes(input));
+        setExecutorSuggestions(filterExecutor ? matches.slice(0, 5) : []);
+    }, [filterExecutor, users]);
+
+    useEffect(() => {
+        const input = filterAuthor.toLowerCase();
+        const matches = users
+            .map(u => getUserName(u.id))
+            .filter(name => name.toLowerCase().includes(input));
+        setAuthorSuggestions(filterAuthor ? matches.slice(0, 5) : []);
+    }, [filterAuthor, users]);
+
+
     const getUserName = (id: number) => {
         const u = users.find(u => u.id === id);
         return u ? `${u.lastName} ${u.firstName}` : '—';
@@ -71,20 +92,20 @@ export default function KanbanBoard() {
     };
 
 
-    const getStatusName = (id: number) => {
-        return statusOptions.find(s => s.id === id)?.name || '';
-    };
+    // const getStatusName = (id: number) => {
+    //     return statusOptions.find(s => s.id === id)?.name || '';
+    // };
 
     const filteredTasks = tasks.filter(t => {
         if (t.parentId) return false;
 
         const executor = getUserName(t.executorId).toLowerCase();
-        const status = getStatusName(t.statusId);
+        const author = getUserName(t.authorId).toLowerCase();
         const type = getTypeName(t.typeId);
 
         return (
             (!filterExecutor || executor.includes(filterExecutor.toLowerCase())) &&
-            (!filterStatus || status === filterStatus) &&
+            (!filterAuthor || author.includes(filterAuthor.toLowerCase())) &&
             (!filterType || type === filterType) &&
             (!onlyMyTasks || t.authorId === user.id || t.executorId === user.id)
         );
@@ -111,9 +132,9 @@ export default function KanbanBoard() {
 
     return (
         <div className="container-fluid py-4" style={{ backgroundColor: '#f4f5f7', minHeight: '100vh' }}>
-            <h3 className="mb-4">Канбан</h3>
             <div className="row mb-3 g-2">
-                <div className="col-md-3">
+                {/* Исполнитель */}
+                <div className="col-md-3 position-relative">
                     <input
                         type="text"
                         className="form-control"
@@ -121,19 +142,52 @@ export default function KanbanBoard() {
                         value={filterExecutor}
                         onChange={e => setFilterExecutor(e.target.value)}
                     />
+                    {executorSuggestions.length > 0 && (
+                        <div className="list-group position-absolute w-100" style={{ zIndex: 1000, top: '100%' }}>
+                            {executorSuggestions.map((name, i) => (
+                                <div
+                                    key={i}
+                                    className="list-group-item list-group-item-action"
+                                    onClick={() => {
+                                        setFilterExecutor(name);
+                                        setTimeout(() => setExecutorSuggestions([]), 0);
+                                    }}
+                                >
+                                    {name}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
-                <div className="col-md-3">
-                    <select
-                        className="form-select"
-                        value={filterStatus}
-                        onChange={e => setFilterStatus(e.target.value)}
-                    >
-                        <option value="">Все статусы</option>
-                        {statusOptions.map((s: any) => (
-                            <option key={s.id} value={s.name}>{s.name}</option>
-                        ))}
-                    </select>
+
+                {/* Заказчик */}
+                <div className="col-md-3 position-relative">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Фильтр по заказчику"
+                        value={filterAuthor}
+                        onChange={e => setFilterAuthor(e.target.value)}
+                    />
+                    {authorSuggestions.length > 0 && (
+                        <div className="list-group position-absolute w-100" style={{ zIndex: 1000, top: '100%' }}>
+                            {authorSuggestions.map((name, i) => (
+                                <div
+                                    key={i}
+                                    className="list-group-item list-group-item-action"
+                                    onClick={() => {
+                                        setFilterAuthor(name);
+                                        setTimeout(() => setAuthorSuggestions([]), 0);
+                                    }}
+                                >
+                                    {name}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
+
+                {/* Тип задачи */}
                 <div className="col-md-3">
                     <select
                         className="form-select"
@@ -146,6 +200,8 @@ export default function KanbanBoard() {
                         ))}
                     </select>
                 </div>
+
+                {/* Мои задачи */}
                 <div className="col-md-3 d-flex align-items-center">
                     <input
                         type="checkbox"
@@ -157,6 +213,7 @@ export default function KanbanBoard() {
                     <label className="form-check-label" htmlFor="myTasksFilter">Мои задачи</label>
                 </div>
             </div>
+
 
             <DragDropContext onDragEnd={handleDragEnd}>
                 <div className="d-flex gap-4 overflow-auto">

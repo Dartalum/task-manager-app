@@ -63,18 +63,18 @@ export default function AdminPanel() {
 
     return (
         <div className="container py-4">
-            <h3 className="mb-4">Админ-панель</h3>
+            <h3 className="mb-4 fw-bold">Админ-панель</h3>
 
             {/* Типы задач */}
             <div className="mb-4">
-                <button className="btn btn-outline-primary" onClick={() => setOpenSection(openSection === 'types' ? null : 'types')}>
+                <button className="btn btn-outline-primary w-100" onClick={() => setOpenSection(openSection === 'types' ? null : 'types')}>
                     Типы задач
                 </button>
                 {openSection === 'types' && (
                     <div className="mt-3">
                         <div className="d-flex mb-3">
                             <input className="form-control me-2" value={typeName} onChange={e => setTypeName(e.target.value)} placeholder="Название типа" />
-                            <button className="btn btn-success" onClick={handleAddType}>Добавить</button>
+                            <button className="btn btn-success"  onClick={handleAddType}>Добавить</button>
                         </div>
                         <ul className="list-group">
                             {taskTypes.map(t => (
@@ -87,7 +87,7 @@ export default function AdminPanel() {
 
             {/* Статусы задач */}
             <div className="mb-4">
-                <button className="btn btn-outline-primary" onClick={() => setOpenSection(openSection === 'statuses' ? null : 'statuses')}>
+                <button className="btn btn-outline-primary w-100" onClick={() => setOpenSection(openSection === 'statuses' ? null : 'statuses')}>
                     Статусы задач
                 </button>
                 {openSection === 'statuses' && (
@@ -107,7 +107,7 @@ export default function AdminPanel() {
 
             {/* Пользователи */}
             <div className="mb-4">
-                <button className="btn btn-outline-primary" onClick={() => setOpenSection(openSection === 'users' ? null : 'users')}>
+                <button className="btn btn-outline-primary w-100" onClick={() => setOpenSection(openSection === 'users' ? null : 'users')}>
                     Пользователи
                 </button>
                 {openSection === 'users' && (
